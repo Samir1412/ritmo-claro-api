@@ -21,3 +21,27 @@
 10. Como ADMIN, quiero administrar mis propios hábitos igual que un usuario, para tener el mismo flujo de trabajo sobre mi información (CRUD propio, 200/201).
 11. Como ADMIN, quiero consultar un listado global de hábitos, para atender casos de soporte sin ver datos sensibles de las cuentas (200 sin `passwordHash`).
 12. Como USUARIO normal, no puedo llamar al listado global de administración, para que esa información quede reservada al soporte (403).
+
+## Matriz de permisos
+
+| Endpoint | Actor autorizado | Resultado esperado | Si falla |
+|---|---|---|---|
+| POST /auth/register | Visitante | 201, cuenta creada con rol USUARIO, sin passwordHash | 400 datos inválidos, 409 email repetido |
+| POST /auth/login | Visitante | 200 con access_token | 400 datos inválidos, 401 credenciales inválidas (mensaje genérico) |
+| POST /habitos | Usuario autenticado | 201, hábito asociado al usuario del token | 400 datos inválidos, 401 sin token válido |
+| GET /habitos | Usuario autenticado | 200, solo los hábitos propios | 401 sin token válido |
+| GET /habitos/:id | Dueño del hábito | 200 con el hábito | 401 sin token, 403 hábito ajeno, 404 no existe |
+| PATCH /habitos/:id | Dueño del hábito | 200, solo cambian los campos enviados | 400 datos inválidos, 401 sin token, 403 hábito ajeno, 404 no existe |
+| DELETE /habitos/:id | Dueño del hábito | Éxito al borrar; la consulta posterior da 404 | 401 sin token, 403 hábito ajeno, 404 no existe |
+| GET /habitos/admin/todos | ADMIN | 200, todos los hábitos sin datos sensibles | 401 sin token, 403 si el rol es USUARIO |
+
+## Criterios de aceptación
+
+| Área | Caso positivo | Caso negativo |
+|---|---|---|
+| Registro | Datos correctos dan 201 y la respuesta no incluye passwordHash | Email repetido da 409; nombre corto o email inválido da 400 |
+| Login | Credenciales correctas devuelven un token con expiración | Contraseña o email incorrectos dan 401 con mensaje genérico |
+| CRUD | Crear y luego listar muestra el hábito propio (201 y 200) | Consultar un id que no existe da 404 |
+| Actualización parcial | Cambiar un solo campo conserva los demás | Un enum inexistente da 400 |
+| Propiedad | El dueño consulta, edita y borra su hábito | Usuario B recibe 403 al ver, editar o borrar el hábito de A |
+| Rol | ADMIN llama a /habitos/admin/todos y recibe 200 | USUARIO recibe 403; sin token recibe 401 |
