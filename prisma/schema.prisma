@@ -11,3 +11,49 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// --- ENUMS ---
+
+enum Rol {
+  USUARIO
+  ADMIN
+}
+
+enum EstadoHabito {
+  ACTIVO
+  PAUSADO
+  ARCHIVADO
+}
+
+enum Frecuencia {
+  DIARIA
+  SEMANAL
+  MENSUAL
+}
+
+// --- MODELOS ---
+
+model Usuario {
+  id           Int      @id @default(autoincrement())
+  nombre       String
+  email        String   @unique
+  passwordHash String
+  rol          Rol      @default(USUARIO)
+  creadoEn     DateTime @default(now())
+
+  // Relación: Un usuario tiene muchos hábitos
+  habitos      Habito[]
+}
+
+model Habito {
+  id          Int          @id @default(autoincrement())
+  nombre      String       @db.VarChar(120)
+  descripcion String?      @db.VarChar(500)
+  estado      EstadoHabito @default(ACTIVO)
+  frecuencia  Frecuencia   @default(DIARIA)
+  usuarioId   Int
+  creadoEn    DateTime     @default(now())
+
+  // Relación: Cada hábito pertenece a un usuario
+  usuario     Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+}
