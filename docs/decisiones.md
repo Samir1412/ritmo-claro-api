@@ -1,5 +1,6 @@
 # Decisiones del proyecto
 
+
 ## Historias de usuario
 
 ### Visitante
@@ -21,6 +22,7 @@
 10. Como ADMIN, quiero administrar mis propios hábitos igual que un usuario, para tener el mismo flujo de trabajo sobre mi información (CRUD propio, 200/201).
 11. Como ADMIN, quiero consultar un listado global de hábitos, para atender casos de soporte sin ver datos sensibles de las cuentas (200 sin `passwordHash`).
 12. Como USUARIO normal, no puedo llamar al listado global de administración, para que esa información quede reservada al soporte (403).
+
 
 ## Matriz de permisos
 
@@ -45,3 +47,15 @@
 | Actualización parcial | Cambiar un solo campo conserva los demás | Un enum inexistente da 400 |
 | Propiedad | El dueño consulta, edita y borra su hábito | Usuario B recibe 403 al ver, editar o borrar el hábito de A |
 | Rol | ADMIN llama a /habitos/admin/todos y recibe 200 | USUARIO recibe 403; sin token recibe 401 |
+
+
+## Decisiones técnicas
+
+### 1. Acceso a un hábito ajeno: 403
+Si el token es válido pero el hábito pertenece a otra persona, la API responde 403 Forbidden: la identidad existe y el recurso existe, pero no hay permiso. Un 404 ocultaría que el id existe, pero el contrato del taller pide 403 para fallos de propiedad. El service busca primero el hábito (404 si no existe) y luego compara el dueño con el usuario del token (403 si no coincide).
+
+### 2. Eliminación: borrado físico
+DELETE elimina el registro de PostgreSQL y una consulta posterior devuelve 404, como exige el contrato. No se usa borrado lógico porque el modelo ya tiene el estado ARCHIVADO, que el usuario cambia con PATCH y es un concepto distinto de eliminar.
+
+### 3. Campos adicionales: se ignoran
+El ValidationPipe global usa `whitelist: true` y `transform: true`. Los campos que no están declarados en el DTO se descartan sin error, por lo que enviar `rol` o `usuarioId` en el body no tiene efecto. No se usa `forbidNonWhitelisted` para no devolver 400 por datos sobrantes que ya son inofensivos.
