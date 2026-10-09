@@ -59,3 +59,9 @@ DELETE elimina el registro de PostgreSQL y una consulta posterior devuelve 404, 
 
 ### 3. Campos adicionales: se ignoran
 El ValidationPipe global usa `whitelist: true` y `transform: true`. Los campos que no están declarados en el DTO se descartan sin error, por lo que enviar `rol` o `usuarioId` en el body no tiene efecto. No se usa `forbidNonWhitelisted` para no devolver 400 por datos sobrantes que ya son inofensivos.
+
+## Decisiones del modelo de datos
+
+1. **Id con `autoincrement()` frente a `uuid()`**: Elegí ids enteros autoincrementales porque el MVP es deliberadamente pequeño y de baja escala. Las consultas indexadas en PostgreSQL son más eficientes, las pruebas manuales en Postman son más simples con números legibles (1, 2, 3...) y evito el almacenamiento extra de un UUID de 36 caracteres. Como los ids enteros son fáciles de adivinar, la privacidad no depende de que el id sea difícil de adivinar: la propiedad del hábito se valida siempre en el service comparando el dueño con la identidad del JWT.
+2. **`onDelete: Cascade`**: Si se borra un usuario, sus hábitos se eliminan automáticamente en la base de datos. Lo decidí así para garantizar la integridad referencial y evitar registros huérfanos. El MVP no tiene endpoint para borrar usuarios, por lo que el `Cascade` es una protección de integridad y no una función visible de la API.
+3. **`nombre` de Usuario sin límite en la base**: Dejé el campo como `String` simple (`text` en PostgreSQL) porque el modelo mínimo del taller no impone una longitud máxima para este atributo. Limitarlo sin un requisito claro podría truncar nombres compuestos legítimos. La longitud mínima de 2 caracteres se valida en el DTO de registro.
