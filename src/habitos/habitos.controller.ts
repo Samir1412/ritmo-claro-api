@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Patch, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Delete, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { HabitosService } from './habitos.service';
 import { CrearHabitoDto } from './dto/crear-habito.dto';
 import { ActualizarHabitoDto } from './dto/actualizar-habito.dto';
@@ -38,5 +38,13 @@ export class HabitosController {
     @Body() dto: ActualizarHabitoDto,
   ) {
     return this.habitosService.actualizar(id, usuario.id, dto);
+  }
+
+  @Delete(':id')
+  eliminar(
+    @Param('id', ParseIntPipe) id: number,
+    @UsuarioActual() usuario: { id: number },
+  ) {
+    return this.habitosService.eliminar(id, usuario.id);
   }
 }

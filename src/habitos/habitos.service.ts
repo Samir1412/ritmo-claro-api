@@ -35,6 +35,14 @@ export class HabitosService {
     });
   }
 
+  async eliminar(id: number, usuarioId: number) {
+    await this.buscarPropio(id, usuarioId);
+
+    return this.prisma.habito.delete({
+      where: { id },
+    });
+  }
+
   private async buscarPropio(id: number, usuarioId: number) {
     const habito = await this.prisma.habito.findUnique({
       where: { id },
