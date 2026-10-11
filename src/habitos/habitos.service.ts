@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CrearHabitoDto } from './dto/crear-habito.dto';
+import { ActualizarHabitoDto } from './dto/actualizar-habito.dto';
 
 @Injectable()
 export class HabitosService {
@@ -22,6 +23,19 @@ export class HabitosService {
   }
 
   async obtener(id: number, usuarioId: number) {
+    return this.buscarPropio(id, usuarioId);
+  }
+
+  async actualizar(id: number, usuarioId: number, dto: ActualizarHabitoDto) {
+    await this.buscarPropio(id, usuarioId);
+
+    return this.prisma.habito.update({
+      where: { id },
+      data: dto,
+    });
+  }
+
+  private async buscarPropio(id: number, usuarioId: number) {
     const habito = await this.prisma.habito.findUnique({
       where: { id },
     });
