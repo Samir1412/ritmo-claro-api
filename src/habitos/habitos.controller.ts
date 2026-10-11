@@ -4,6 +4,9 @@ import { CrearHabitoDto } from './dto/crear-habito.dto';
 import { ActualizarHabitoDto } from './dto/actualizar-habito.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UsuarioActual } from '../auth/usuario-actual.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Rol } from '../generated/prisma/client';
 
 @Controller('habitos')
 @UseGuards(JwtAuthGuard)
@@ -21,6 +24,13 @@ export class HabitosController {
   @Get()
   listar(@UsuarioActual() usuario: { id: number }) {
     return this.habitosService.listar(usuario.id);
+  }
+
+  @Get('admin/todos')
+  @Roles(Rol.ADMIN)
+  @UseGuards(RolesGuard)
+  listarTodos() {
+    return this.habitosService.listarTodos();
   }
 
   @Get(':id')

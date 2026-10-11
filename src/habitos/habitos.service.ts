@@ -22,6 +22,20 @@ export class HabitosService {
     });
   }
 
+  async listarTodos() {
+    return this.prisma.habito.findMany({
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nombre: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
   async obtener(id: number, usuarioId: number) {
     return this.buscarPropio(id, usuarioId);
   }
